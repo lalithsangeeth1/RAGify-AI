@@ -4,7 +4,7 @@ An interactive, production-ready educational reference sandbox demonstrating the
 
 ### 🌐 Live Application Link
 You can access the live, interactive deployment of this application here:
-👉 **[Live Application Sandbox](https://rag-assignment-reference-guide-184030380121.asia-southeast1.run.app)**
+👉 **[Live Application Sandbox](https://ragify-ai-184030380121.asia-southeast1.run.app)**
 
 ---
 
@@ -196,6 +196,6 @@ GitHub Repository:
 https://github.com/jukantilalith/trueailab-rag-assignment
 
 Live Application:
-https://rag-assignment-reference-guide-184030380121.asia-southeast1.run.app
+https://ragify-ai-184030380121.asia-southeast1.run.app
 ```
 
