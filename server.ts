@@ -28,6 +28,16 @@ app.use((req, res, next) => {
 // Bind API routing sub-system
 app.use('/api', apiRouter);
 
+// Health check endpoint bound at root /health to satisfy assignment constraints
+app.get('/health', (req, res) => {
+  res.json({ status: 'healthy' });
+});
+
+// Also bind at /api/health for extensive client-side testing convenience
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'healthy' });
+});
+
 // Serve static assets from build output folder
 const distPath = path.join(__dirname, 'dist');
 app.use(express.static(distPath));
@@ -43,7 +53,7 @@ app.get('*', (req, res, next) => {
 // Launch server listener
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`=================================================`);
-  console.log(`🚀 GenAI RAG Reference Guide Server running offline`);
+  console.log(`🚀 RAGify-AI Server running offline`);
   console.log(`🌐 Address: http://localhost:${PORT}`);
   console.log(`🔑 Gemini Key Present: ${!!process.env.GEMINI_API_KEY}`);
   console.log(`=================================================`);

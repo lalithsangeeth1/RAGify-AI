@@ -1,5 +1,7 @@
 import express from 'express';
 import { GoogleGenAI } from '@google/genai';
+import fs from 'fs';
+import path from 'path';
 
 // Initialize the Express router
 const router = express.Router();
@@ -23,6 +25,7 @@ export interface Chunk {
 export interface EmbeddedChunk {
   chunk: Chunk;
   embedding: number[];
+  isSimulated?: boolean;
 }
 
 export interface ChatMessage {
@@ -37,39 +40,62 @@ export interface ChatSession {
   lastActive: string;
 }
 
-// In-Memory RAG Database
-let dbDocs: Document[] = [
-  {
-    id: 'doc-1',
-    title: 'Reset Password Options',
-    content: 'Users can reset their password from Settings > Security. They must verify their identity via their registered email address. This option is available globally across both web and mobile client interfaces.'
-  },
-  {
-    id: 'doc-2',
-    title: 'Account Deletion Policy',
-    content: 'Users can delete their account permanently from Account Settings. Once deleted, all personal transactions, history, and workspace files are archived for 30 days before visual purge.'
-  },
-  {
-    id: 'doc-3',
-    title: 'Refund Claims Period',
-    content: 'Refund claims are processed within 5-7 business days. Customers must submit their claim within 14 days of purchase. No refunds are permitted for enterprise tiers after workspace setup.'
-  },
-  {
-    id: 'doc-4',
-    title: 'API Rate Limits details',
-    content: 'The API rate limit is 60 requests per minute for the free tier, and 1000 requests per minute for the premium subscription tier. Exceeding limits triggers an HTTP 429 error response.'
-  },
-  {
-    id: 'doc-5',
-    title: 'Recommended Gemini Models',
-    content: 'For standard text tasks including Q&A, formatting, and summarization, use gemini-3.5-flash. For high-accuracy text embedding tasks, use the gemini-embedding-2-preview model.'
-  },
-  {
-    id: 'doc-6',
-    title: 'Retrieval RAG Threshold config',
-    content: 'We enforce a similarity threshold of 0.70 to 0.75 (cosine similarity metrics) to isolate high-quality context and reject secondary noise. Refuse requests with max score < threshold.'
+// Helper to load initial documents from docs.json or standard fallback
+function loadInitialDocs(): Document[] {
+  try {
+    const docsPath = path.join(process.cwd(), 'docs.json');
+    if (fs.existsSync(docsPath)) {
+      const dataStr = fs.readFileSync(docsPath, 'utf8');
+      const parsed = JSON.parse(dataStr);
+      if (Array.isArray(parsed)) {
+        console.log(`[RAG Server] Loaded ${parsed.length} documents from docs.json`);
+        return parsed.map((doc: any, idx: number) => ({
+          id: doc.id || `doc-${idx + 1}`,
+          title: doc.title || `Untitled Doc ${idx + 1}`,
+          content: doc.content || ''
+        }));
+      }
+    }
+  } catch (err) {
+    console.warn('[RAG Server] Failed to read docs.json, using fallback documents', err);
   }
-];
+  
+  return [
+    {
+      id: 'doc-1',
+      title: 'Reset Password Options',
+      content: 'Users can reset their password from Settings > Security. They must verify their identity via their registered email address. This option is available globally across both web and mobile client interfaces.'
+    },
+    {
+      id: 'doc-2',
+      title: 'Account Deletion Policy',
+      content: 'Users can delete their account permanently from Account Settings. Once deleted, all personal transactions, history, and workspace files are archived for 30 days before visual purge.'
+    },
+    {
+      id: 'doc-3',
+      title: 'Refund Claims Period',
+      content: 'Refund claims are processed within 5-7 business days. Customers must submit their claim within 14 days of purchase. No refunds are permitted for enterprise tiers after workspace setup.'
+    },
+    {
+      id: 'doc-4',
+      title: 'API Rate Limits details',
+      content: 'The API rate limit is 60 requests per minute for the free tier, and 1000 requests per minute for the premium subscription tier. Exceeding limits triggers an HTTP 429 error response.'
+    },
+    {
+      id: 'doc-5',
+      title: 'Recommended Gemini Models',
+      content: 'For standard text tasks including Q&A, formatting, and summarization, use gemini-3.5-flash. For high-accuracy text embedding tasks, use the gemini-embedding-2-preview model.'
+    },
+    {
+      id: 'doc-6',
+      title: 'Retrieval RAG Threshold config',
+      content: 'We enforce a similarity threshold of 0.70 to 0.75 (cosine similarity metrics) to isolate high-quality context and reject secondary noise. Refuse requests with max score < threshold.'
+    }
+  ];
+}
+
+// In-Memory RAG Database
+let dbDocs: Document[] = loadInitialDocs();
 
 let dbChunks: Chunk[] = [];
 let dbEmbeddings: EmbeddedChunk[] = [];
@@ -100,13 +126,40 @@ function cosineSimilarity(a: number[], b: number[]): number {
   return dotProduct(a, b) / (m1 * m2);
 }
 
-// Generate deterministic/mock embeddings for fallback when key is not defined
+const STOP_WORDS = new Set([
+  'the', 'and', 'a', 'an', 'of', 'to', 'in', 'is', 'that', 'it', 'for', 'on', 'with', 'as', 'at', 'by', 'an', 'be', 'this', 'are', 'from', 'or', 'your', 'you', 'i', 'we', 'they', 'their', 'she', 'he', 'can', 'will', 'would', 'should', 'could', 'how', 'do', 'my', 'me', 'our', 'us', 'about', 'there'
+]);
+
+function getWordVector(word: string, dimensions = 768): number[] {
+  const vec = new Array(dimensions).fill(0);
+  let hash = 0;
+  for (let i = 0; i < word.length; i++) {
+    hash = (hash << 5) - hash + word.charCodeAt(i);
+    hash |= 0;
+  }
+  
+  let seed = Math.abs(hash);
+  const nextRandom = () => {
+    seed = (seed * 1664525 + 1013904223) % 4294967296;
+    return seed / 4294967296;
+  };
+  
+  // Set positive index signatures deterministically
+  for (let j = 0; j < 25; j++) {
+    const idx = Math.floor(nextRandom() * dimensions);
+    vec[idx] += 1.0;
+  }
+  return vec;
+}
+
+// Generate deterministic/mock embeddings for fallback when key is not defined.
+// Implements Random Indexing to allow semantic-like keyword similarity in simulated mode!
 function generateMockEmbedding(text: string, dimensions = 768): number[] {
-  // Simple hashing algorithm to make embedding deterministic based on input text
-  const values: number[] = [];
+  const values = new Array(dimensions).fill(0);
+  
+  // 1. Core background vector signature based on character hash (prevents magnitude zero and models low level features)
   let hash1 = 5381;
   let hash2 = 89;
-  
   for (let i = 0; i < text.length; i++) {
     const char = text.charCodeAt(i);
     hash1 = ((hash1 << 5) + hash1) + char;
@@ -115,7 +168,21 @@ function generateMockEmbedding(text: string, dimensions = 768): number[] {
 
   for (let i = 0; i < dimensions; i++) {
     const angle = ((hash1 * i + hash2) % 360) * (Math.PI / 180);
-    values.push(Math.sin(angle) * (0.5 + 0.5 * Math.cos(i * 0.1)));
+    values[i] = Math.sin(angle) * 0.15; // Small base-level background signature
+  }
+
+  // 2. Random Indexing projection for words
+  const words = text
+    .toLowerCase()
+    .replace(/[^\w\s]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 2 && !STOP_WORDS.has(w));
+
+  for (const word of words) {
+    const wordVec = getWordVector(word, dimensions);
+    for (let i = 0; i < dimensions; i++) {
+      values[i] += wordVec[i] * 1.5;
+    }
   }
 
   // Normalize vector to magnitude 1.0 (so dot product equals cosine similarity!)
@@ -240,7 +307,8 @@ function performChunkingLogic(
 dbChunks = performChunkingLogic(dbDocs, 120, 25, 'char');
 dbEmbeddings = dbChunks.map(ch => ({
   chunk: ch,
-  embedding: generateMockEmbedding(ch.text)
+  embedding: generateMockEmbedding(ch.text),
+  isSimulated: true
 }));
 
 // Define API Endpoints
@@ -320,7 +388,8 @@ router.post('/docs/reset', (req, res) => {
   dbChunks = performChunkingLogic(dbDocs, 120, 25, 'char');
   dbEmbeddings = dbChunks.map(ch => ({
     chunk: ch,
-    embedding: generateMockEmbedding(ch.text)
+    embedding: generateMockEmbedding(ch.text),
+    isSimulated: true
   }));
   dbSessions.clear();
 
@@ -376,7 +445,8 @@ router.post('/embeddings/generate', async (req, res) => {
           if (values) {
             embeddingsList.push({
               chunk: ch,
-              embedding: values
+              embedding: values,
+              isSimulated: false
             });
           } else {
             throw new Error('No embedding values returned');
@@ -386,7 +456,8 @@ router.post('/embeddings/generate', async (req, res) => {
           // Fallback to mock embedding values for this specific node
           embeddingsList.push({
             chunk: ch,
-            embedding: generateMockEmbedding(ch.text)
+            embedding: generateMockEmbedding(ch.text),
+            isSimulated: true
           });
         }
       }
@@ -394,7 +465,7 @@ router.post('/embeddings/generate', async (req, res) => {
       dbEmbeddings = embeddingsList;
       return res.json({
         success: true,
-        isSimulated: false,
+        isSimulated: dbEmbeddings.some(emb => emb.isSimulated),
         dimension: dbEmbeddings[0]?.embedding.length || 768,
         count: dbEmbeddings.length,
         durationMs: Date.now() - startTime
@@ -404,7 +475,8 @@ router.post('/embeddings/generate', async (req, res) => {
       for (const ch of dbChunks) {
         embeddingsList.push({
           chunk: ch,
-          embedding: generateMockEmbedding(ch.text)
+          embedding: generateMockEmbedding(ch.text),
+          isSimulated: true
         });
       }
       
@@ -455,10 +527,11 @@ router.post('/similarity/search', async (req, res) => {
   }
 
   const { ai, hasKey } = getGeminiClient();
+  const dbHasSimulated = dbEmbeddings.some(emb => emb.isSimulated);
   let queryVector: number[];
 
   try {
-    if (hasKey && ai) {
+    if (hasKey && ai && !dbHasSimulated) {
       try {
         const response = await ai.models.embedContent({
           model: 'gemini-embedding-2-preview',
@@ -494,7 +567,7 @@ router.post('/similarity/search', async (req, res) => {
     res.json({
       query,
       queryVectorPreview: queryVector.slice(0, 8).map(v => Number(v.toFixed(4))),
-      isSimulated: !hasKey,
+      isSimulated: dbHasSimulated || !hasKey,
       threshold,
       k,
       results: slicedResults,
@@ -509,8 +582,8 @@ router.post('/similarity/search', async (req, res) => {
 router.post('/chat', async (req, res) => {
   const { sessionId = 'default_student_session', message = '', threshold = 0.70, k = 3, temperature = 0.2 } = req.body;
   
-  if (!message.trim()) {
-    return res.status(400).json({ error: 'User message input must not be empty' });
+  if (message === undefined || message === null || String(message).trim() === '') {
+    return res.status(400).json({ error: 'Message field is required' });
   }
 
   // Get or create session
@@ -525,12 +598,13 @@ router.post('/chat', async (req, res) => {
   }
 
   const { ai, hasKey } = getGeminiClient();
+  const dbHasSimulated = dbEmbeddings.some(emb => emb.isSimulated);
   
   // RAG Workflow:
   // Step 1: Query embedding generation & similarity search
   let queryVector: number[] = [];
   try {
-    if (hasKey && ai) {
+    if (hasKey && ai && !dbHasSimulated) {
       const response = await ai.models.embedContent({
         model: 'gemini-embedding-2-preview',
         contents: message
@@ -651,7 +725,8 @@ User: ${message}
     reply: assistantReply,
     isGrounded,
     tokensUsed: tokenCount,
-    retrievedChunks: isGrounded ? retrievedChunks : [],
+    retrievedChunks: isGrounded ? retrievedChunks.length : 0,
+    retrievedChunksList: isGrounded ? retrievedChunks : [],
     allCandidateScores: retrievedChunks, // Included to let students analyze threshold metrics
     promptUsed: dynamicPrompt,
     sessionId: session.sessionId,

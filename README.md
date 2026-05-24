@@ -2,6 +2,10 @@
 
 An interactive, production-ready educational reference sandbox demonstrating the mechanics of **Retrieval-Augmented Generation (RAG)**. This guide provides students with a playground to explore document management, text chunking pipelines, vector embedding matrices, cosine similarity calculations, prompt engineering, and grounded multi-turn conversations.
 
+### 🌐 Live Application Link
+You can access the live, interactive deployment of this application here:
+👉 **[Live Application Sandbox](https://rag-assignment-reference-guide-184030380121.asia-southeast1.run.app)**
+
 ---
 
 ## 1. Architectural Diagram
@@ -149,13 +153,49 @@ npm run build
 
 ---
 
-## 7. Interactive Interface & Diagnostics
+## 7. Interactive Interface & Diagnostics Walkthrough
 
-The companion visual workspace features 7 modules:
-* **01 Architecture:** Conceptual breakdown comparing raw vs. grounded queries.
-* **02 Document Store:** Active document manager allowing full CRUD operations over loaded client policy tables.
-* **03 Chunking Engine:** Visualizer to adjust size thresholds, overlaps, and parsing strategies from regular characters, words, or full sentences.
-* **04 Vector Database:** Flat index grid displaying normalized values and active mathematical dimensions.
-* **05 Similarity Search Matrix:** Run targeted live searches with variable sliding thresholds ($0.0 - 1.0$) and candidate $k$ sizes.
-* **06 Prompt Engineering Panel:** Read-only instruction generator showing actual computed text sent to the foundation models.
-* **07 Conversational Sandbox Chat:** Low-latency workspace with real-time token diagnostics, grounding state tags, and clear hooks.
+The companion workspace guides you through each processing block of the RAG pipeline with high-fidelity visual control panels.
+
+### Module 01: Core Architecture Workflow
+The visual blueprint outlines standard LLM completion pathways contrasted against grounded retrieval loops. It features detailed comparison boxes, semantic match scores, and a checklist of assignment requirements.
+![01 Core Architectural Blueprint](docs/screenshots/01_rag_architecture.png)
+
+### Module 02: Document Manager Store
+An interactive workspace supporting CRUD actions for `docs.json` (Add, Delete, or Restore Defaults) to dynamically alter the database of policies.
+![02 Document Manager Store](docs/screenshots/02_document_store.png)
+
+### Module 03: Text Chunking Pipeline
+Fine-tune character limits, overlap sizes, and parsing granularities (by standard characters, word boundaries, or complete sentence objects) with real-time visual output of the resulting collection.
+![03 Text Chunking Pipeline](docs/screenshots/03_chunking_engine.png)
+
+### Module 04: Vector Database Index
+Inspect high-dimensionality embeddings (768 decimals) generated via Google Gemini models, complete with index status headers and full math tables of unit coordinates.
+![04 Vector Store and Embeddings](docs/screenshots/04_vector_database.png)
+
+### Module 05: Similarity Search Matrix
+Run targeted Cosine Similarity searches on custom phrases over a sliding threshold ($0.0 - 1.0$) to preview the retrieved candidate segments.
+![05 Similarity Matrix Search](docs/screenshots/05_similarity_search.png)
+
+### Module 06: Grounded Prompt Assembly
+Understand the exact system core prompts, context-chunk injections, and conversational history blocks built in memory prior to requesting LLM responses.
+![06 Prompt Engineering Panel](docs/screenshots/06_prompt_engineering.png)
+
+### Module 07: Live Conversation Terminal
+A fully-featured conversational sandbox providing direct terminal interactions. The view includes grounding indicator badges, real-time token tracking, configurable thresholds/temperature sliders, and retrieved context listings.
+![07 Playable Conversational Terminal](docs/screenshots/07_conversational_sandbox.png)
+
+---
+
+## 8. TRUEAILAB Submission Format
+
+For quick reference during evaluation, here is the official submission format for this assignment:
+
+```text
+GitHub Repository:
+https://github.com/jukantilalith/trueailab-rag-assignment
+
+Live Application:
+https://rag-assignment-reference-guide-184030380121.asia-southeast1.run.app
+```
+

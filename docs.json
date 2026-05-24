@@ -1,0 +1,26 @@
+[
+  {
+    "title": "Reset Password",
+    "content": "Users can reset their password from Settings > Security. They must verify their identity via their registered email address. This option is available globally across both web and mobile client interfaces."
+  },
+  {
+    "title": "Account Deletion Policy",
+    "content": "Users can delete their account permanently from Account Settings. Once deleted, all personal transactions, history, and workspace files are archived for 30 days before visual purge."
+  },
+  {
+    "title": "Refund Claims Period",
+    "content": "Refund claims are processed within 5-7 business days. Customers must submit their claim within 14 days of purchase. No refunds are permitted for enterprise tiers after workspace setup."
+  },
+  {
+    "title": "API Rate Limits details",
+    "content": "The API rate limit is 60 requests per minute for the free tier, and 1000 requests per minute for the premium subscription tier. Exceeding limits triggers an HTTP 429 error response."
+  },
+  {
+    "title": "Recommended Gemini Models",
+    "content": "For standard text tasks including Q&A, formatting, and summarization, use gemini-3.5-flash. For high-accuracy text embedding tasks, use the gemini-embedding-2-preview model."
+  },
+  {
+    "title": "Retrieval RAG Threshold config",
+    "content": "We enforce a similarity threshold of 0.70 to 0.75 (cosine similarity metrics) to isolate high-quality context and reject secondary noise. Refuse requests with max score < threshold."
+  }
+]

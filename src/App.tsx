@@ -368,7 +368,7 @@ export default function App() {
       
       setChatLog(data.history || []);
       setLastPromptPreview(data.promptUsed);
-      setLastRetrievedChunks(data.retrievedChunks || []);
+      setLastRetrievedChunks(data.retrievedChunksList || []);
       setTokensUsed(data.tokensUsed || 0);
       setIsGroundedChatState(data.isGrounded);
       await fetchGlobalState();
@@ -406,7 +406,7 @@ export default function App() {
           </div>
           <div>
             <h1 id="app-title-head" className="font-serif italic text-xl tracking-wide flex items-center gap-2">
-              GenAI Reference Guide
+              RAGify-AI
               <span className="text-xs font-sans not-italic font-bold text-white/40 border-l border-white/20 pl-2 uppercase tracking-[0.2em] hidden sm:inline">
                 Assignment v1.0
               </span>
