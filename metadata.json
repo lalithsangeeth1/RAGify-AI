@@ -1,0 +1,6 @@
+{
+  "name": "RAG Assignment Reference Guide",
+  "description": "Interactive reference guide for RAG configurations involving document libraries, chunking strategies, vector embeddings, similarity search, prompt engineering, and conversational history.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
