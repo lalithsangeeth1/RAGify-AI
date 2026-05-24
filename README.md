@@ -6,6 +6,10 @@ An interactive, production-ready educational reference sandbox demonstrating the
 You can access the live, interactive deployment of this application here:
 👉 **[Live Application Sandbox](https://ragify-ai-184030380121.asia-southeast1.run.app)**
 
+### 🎥 Walkthrough Demo Video
+Watch the detailed video walkthrough demonstration of the RAGify-AI workspace:
+👉 **[Workspace Demo Video](https://drive.google.com/file/d/10fJxKJ7MSCJ5cjnVFBSRYqB0kDioWRDJ/view?usp=sharing)**
+
 ---
 
 ## 1. Architectural Diagram
@@ -157,33 +161,13 @@ npm run build
 
 The companion workspace guides you through each processing block of the RAG pipeline with high-fidelity visual control panels.
 
-### Module 01: Core Architecture Workflow
-The visual blueprint outlines standard LLM completion pathways contrasted against grounded retrieval loops. It features detailed comparison boxes, semantic match scores, and a checklist of assignment requirements.
-![01 Core Architectural Blueprint](docs/screenshots/01_rag_architecture.jpg)
-
-### Module 02: Document Manager Store
-An interactive workspace supporting CRUD actions for `docs.json` (Add, Delete, or Restore Defaults) to dynamically alter the database of policies.
-![02 Document Manager Store](docs/screenshots/02_document_store.jpg)
-
-### Module 03: Text Chunking Pipeline
-Fine-tune character limits, overlap sizes, and parsing granularities (by standard characters, word boundaries, or complete sentence objects) with real-time visual output of the resulting collection.
-![03 Text Chunking Pipeline](docs/screenshots/03_chunking_engine.jpg)
-
-### Module 04: Vector Database Index
-Inspect high-dimensionality embeddings (768 decimals) generated via Google Gemini models, complete with index status headers and full math tables of unit coordinates.
-![04 Vector Store and Embeddings](docs/screenshots/04_vector_database.jpg)
-
-### Module 05: Similarity Search Matrix
-Run targeted Cosine Similarity searches on custom phrases over a sliding threshold ($0.0 - 1.0$) to preview the retrieved candidate segments.
-![05 Similarity Matrix Search](docs/screenshots/05_similarity_search.jpg)
-
-### Module 06: Grounded Prompt Assembly
-Understand the exact system core prompts, context-chunk injections, and conversational history blocks built in memory prior to requesting LLM responses.
-![06 Prompt Engineering Panel](docs/screenshots/06_prompt_engineering.jpg)
-
-### Module 07: Live Conversation Terminal
-A fully-featured conversational sandbox providing direct terminal interactions. The view includes grounding indicator badges, real-time token tracking, configurable thresholds/temperature sliders, and retrieved context listings.
-![07 Playable Conversational Terminal](docs/screenshots/07_conversational_sandbox.jpg)
+- **Module 01: Core Architecture Workflow**: The visual blueprint outlines standard LLM completion pathways contrasted against grounded retrieval loops. It features detailed comparison boxes, semantic match scores, and a checklist of assignment requirements.
+- **Module 02: Document Manager Store**: An interactive workspace supporting CRUD actions for `docs.json` (Add, Delete, or Restore Defaults) to dynamically alter the database of policies.
+- **Module 03: Text Chunking Pipeline**: Fine-tune character limits, overlap sizes, and parsing granularities (by standard characters, word boundaries, or complete sentence objects) with real-time visual output of the resulting collection.
+- **Module 04: Vector Database Index**: Inspect high-dimensionality embeddings (768 decimals) generated via Google Gemini models, complete with index status headers and full math tables of unit coordinates.
+- **Module 05: Similarity Search Matrix**: Run targeted Cosine Similarity searches on custom phrases over a sliding threshold ($0.0 - 1.0$) to preview the retrieved candidate segments.
+- **Module 06: Grounded Prompt Assembly**: Understand the exact system core prompts, context-chunk injections, and conversational history blocks built in memory prior to requesting LLM responses.
+- **Module 07: Live Conversation Terminal**: A fully-featured conversational sandbox providing direct terminal interactions. The view includes grounding indicator badges, real-time token tracking, configurable thresholds/temperature sliders, and retrieved context listings.
 
 ---
 
